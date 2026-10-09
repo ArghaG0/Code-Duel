@@ -35,9 +35,12 @@ app.use('/api/code', require('./routes/code.routes'));
 app.use('/api/custom', require('./routes/customRoom.routes'));
 app.use('/api/matches', require('./routes/match.routes'));
 
-let activeMatches = {};
+let activeMatches = Object.create(null);
 let waitingQueue = [];
-let customLobbies = {};
+let customLobbies = Object.create(null);
+
+const isMatchPlayer = (match, socketId) => match &&
+    (match.player1.socketId === socketId || match.player2.socketId === socketId);
 
 const broadcastRoomList = () => {
     const publicRooms = Object.values(customLobbies)
@@ -135,7 +138,17 @@ const saveMatchToDB = async (roomId, matchData, winnerSocketId, reason) => {
 };
 
 io.on('connection', (socket) => {
-    socket.on('find_match', async (userData) => {
+    // Event emitters do not handle rejected async listeners. Contain bad payloads
+    // and database failures without terminating the server process.
+    const on = (event, handler) => socket.on(event, async (...args) => {
+        try {
+            await handler(...args);
+        } catch {
+            socket.emit('operation_error', { message: 'Unable to process event', event });
+        }
+    });
+
+    on('find_match', async (userData) => {
         const isAlreadyInQueue = waitingQueue.some(player => player.socketId === socket.id);
         if (isAlreadyInQueue) return;
         
@@ -176,11 +189,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('get_rooms', () => {
+    on('get_rooms', () => {
         broadcastRoomList();
     });
 
-    socket.on('create_custom_room', async ({ templateId, isPublic, name, userData }) => {
+    on('create_custom_room', async ({ templateId, isPublic, name, userData }) => {
         try {
             const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
             let password = "";
@@ -226,7 +239,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('join_custom_room', async (data) => {
+    on('join_custom_room', async (data) => {
         const { roomId, password, role, userData } = data;
         const lobby = customLobbies[roomId];
 
@@ -315,9 +328,9 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('round_won', async (roomId) => {
+    on('round_won', async (roomId) => {
         const match = activeMatches[roomId];
-        if (!match) return;
+        if (!isMatchPlayer(match, socket.id)) return;
 
         let winner = null;
         if (socket.id === match.player1.socketId) {
@@ -370,9 +383,9 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('forfeit_match', async (roomId) => {
+    on('forfeit_match', async (roomId) => {
         const match = activeMatches[roomId];
-        if (!match) return;
+        if (!isMatchPlayer(match, socket.id)) return;
 
         let winnerId = null;
         if (socket.id === match.player1.socketId) winnerId = match.player2.socketId;
@@ -390,9 +403,9 @@ io.on('connection', (socket) => {
         delete activeMatches[roomId];
     });
 
-    socket.on('code_progress', (data) => {
+    on('code_progress', (data) => {
         const match = activeMatches[data.roomId];
-        if (!match) return;
+        if (!isMatchPlayer(match, socket.id)) return;
 
         let opponentId = null;
         let playerUsername = "";
@@ -421,7 +434,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('leave_room', () => {
+    on('leave_room', () => {
         waitingQueue = waitingQueue.filter(player => player.socketId !== socket.id);
         
         for (const roomId in customLobbies) {
@@ -440,7 +453,7 @@ io.on('connection', (socket) => {
         broadcastRoomList();
     });
 
-    socket.on('disconnect', async () => {
+    on('disconnect', async () => {
         waitingQueue = waitingQueue.filter(player => player.socketId !== socket.id);
         
         for (const roomId in customLobbies) {
@@ -473,7 +486,9 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('join_match_room', (roomId) => {
+    on('join_match_room', (roomId) => {
+        const match = activeMatches[roomId];
+        if (!match || (!isMatchPlayer(match, socket.id) && !match.spectators?.includes(socket.id))) return;
         socket.join(roomId);
     });
 });

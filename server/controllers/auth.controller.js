@@ -1,6 +1,10 @@
 const User = require('../models/user.model');
 const jwt = require('jsonwebtoken');
 
+const validCredentials = (email, password) =>
+    typeof email === 'string' && email.trim().length > 0 && email.length <= 254 &&
+    typeof password === 'string' && password.length > 0;
+
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
@@ -8,10 +12,11 @@ const generateToken = (id) => {
 // --- REGISTER USER (Existing Function) ---
 exports.registerUser = async (req, res) => {
     // ... (your existing registerUser code is here) ...
-    const { username, email, password } = req.body;
+    const { username, email, password } = req.body || {};
     try {
-        if (!username || !email || !password) {
-            return res.status(400).json({ message: 'Please enter all fields' });
+        if (!validCredentials(email, password) || password.length < 6 || Buffer.byteLength(password, 'utf8') > 72 ||
+            typeof username !== 'string' || !username.trim() || username.length > 100) {
+            return res.status(400).json({ message: 'Invalid credentials. Use a password of at least 6 characters and at most 72 UTF-8 bytes.' });
         }
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -32,7 +37,11 @@ exports.registerUser = async (req, res) => {
 
 // --- LOGIN USER (New Function) ---
 exports.loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
+
+    if (!validCredentials(email, password)) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     try {
         const user = await User.findOne({ email });
