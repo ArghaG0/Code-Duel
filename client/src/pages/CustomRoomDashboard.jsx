@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaPlus, FaGamepad, FaLock, FaPlay, FaSave, FaList, FaTrash, FaCode, FaBolt, FaTimes, FaCheckCircle, FaExclamationCircle, FaEdit } from 'react-icons/fa';
@@ -20,6 +20,10 @@ const DEFAULT_TEMPLATE = {
     problems: []
 };
 
+const getAuthConfig = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+});
+
 const CustomRoomDashboard = () => {
     const navigate = useNavigate();
 
@@ -38,13 +42,7 @@ const CustomRoomDashboard = () => {
         setTimeout(() => setNotification(null), 3000);
     };
 
-    const getAuthConfig = () => ({
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
-    });
-
-    const fetchTemplates = async () => {
+    const fetchTemplates = useCallback(async () => {
         try {
             const { data } = await axios.get(
                 '/api/custom/templates',
@@ -54,7 +52,7 @@ const CustomRoomDashboard = () => {
         } catch (err) {
             console.error('Failed to fetch templates', err);
         }
-    };
+    }, []);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -92,7 +90,7 @@ const CustomRoomDashboard = () => {
             socket.off('custom_room_created', handleRoomCreated);
             socket.off('error_joining_room', handleError);
         };
-    }, [navigate]);
+    }, [navigate, fetchTemplates]);
 
     const handleAddTestCase = () => {
         setCurrentProblem(prev => ({
@@ -211,7 +209,7 @@ const CustomRoomDashboard = () => {
             await axios.delete(`/api/custom/template/${templateToDelete}`, getAuthConfig());
             showNotification('Template deleted.', 'success');
             fetchTemplates();
-        } catch (err) {
+        } catch {
             showNotification('Failed to delete template.', 'error');
         } finally {
             setTemplateToDelete(null);

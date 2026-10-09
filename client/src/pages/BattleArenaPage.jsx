@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Editor from "@monaco-editor/react";
 import { FaPlay, FaCheck, FaTerminal, FaCheckCircle, FaTimesCircle, FaCode, FaBolt, FaKeyboard, FaMoon, FaTrophy, FaSkull, FaExclamationTriangle, FaEye } from 'react-icons/fa';
-import axios from 'axios';
+import { postCode } from '../api/code';
 import socket from '../socket';
 
 const BattleArenaPage = () => {
@@ -230,18 +230,24 @@ const BattleArenaPage = () => {
         return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     };
 
+    const handleAuthRequired = (message) => {
+        navigate('/login', { replace: true, state: { message } });
+    };
+
     const handleRunCode = async () => {
         if (disqualified) return;
         setOutput("Executing code...");
         setTestResults(null); 
         try {
-            const { data } = await axios.post('/api/code/execute', {
+            const response = await postCode('/api/code/execute', {
                 code: code,
                 language: 'javascript'
-            });
+            }, handleAuthRequired);
+            if (!response) return;
+            const { data } = response;
             setOutput(data.output || "No output returned.");
         } catch (err) {
-            setOutput("Error: " + (err.response?.data?.output || err.message));
+            setOutput("Error: " + (err.response?.data?.message || err.response?.data?.output || err.message));
         }
     };
 
@@ -252,11 +258,13 @@ const BattleArenaPage = () => {
         setTestResults(null); 
 
         try {
-            const { data } = await axios.post('/api/code/submit', {
+            const response = await postCode('/api/code/submit', {
                 code: code,
                 language: 'javascript',
                 problemId: problem._id
-            });
+            }, handleAuthRequired);
+            if (!response) return;
+            const { data } = response;
 
             setTestResults(data.results); 
 
@@ -267,7 +275,7 @@ const BattleArenaPage = () => {
                 setOutput("❌ Solution failed some test cases.");
             }
         } catch (err) {
-            setOutput("Error submitting code.");
+            setOutput(err.response?.data?.message || 'Error submitting code. Please try again.');
             console.error(err);
         }
     };

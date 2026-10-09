@@ -11,7 +11,7 @@ const LobbyPage = () => {
     const [customRoomCode, setCustomRoomCode] = useState('');
     const [isCustomMode, setIsCustomMode] = useState(false);
     const [notification, setNotification] = useState(null);
-    const [lobbyCounts, setLobbyCounts] = useState({ players: 0, spectators: 0 });
+    const [, setLobbyCounts] = useState({ players: 0, spectators: 0 });
     
     const navigate = useNavigate();
     const location = useLocation();

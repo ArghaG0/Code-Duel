@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 
 const LoginPage = () => {
+    const location = useLocation();
     const [formData, setFormData] = useState({ email: '', password: '' });
-    const [error, setError] = useState('');
+    const [error, setError] = useState(location.state?.message || '');
     const navigate = useNavigate();
 
     const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });

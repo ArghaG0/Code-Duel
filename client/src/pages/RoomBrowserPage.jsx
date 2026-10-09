@@ -23,7 +23,7 @@ const RoomBrowserPage = () => {
                 setUser(data);
                 
                 socket.emit('get_rooms');
-            } catch (err) {
+            } catch {
                 navigate('/login');
             }
         };
