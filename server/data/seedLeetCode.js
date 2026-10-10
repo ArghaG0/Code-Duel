@@ -160,6 +160,8 @@ const problems = [
 
 const seedDB = async () => {
     try {
+        const databaseName = decodeURIComponent(new URL(process.env.MONGO_URI).pathname.slice(1)) || "test";
+        console.log(`Seeding database ${JSON.stringify(databaseName)}: replacing all standard Problem documents.`);
         await mongoose.connect(process.env.MONGO_URI);
         console.log("Connected to DB...");
         
@@ -169,7 +171,7 @@ const seedDB = async () => {
         console.log(`✅ Successfully seeded ${problems.length} LeetCode-style problems!`);
         process.exit();
     } catch (err) {
-        console.error(err);
+        console.error('Database seed failed; check MONGO_URI, credentials, network access and database permissions.');
         process.exit(1);
     }
 };

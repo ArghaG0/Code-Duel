@@ -26,8 +26,8 @@ app.use(express.json());
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch((err) => console.log(err));
+    .then(() => console.log(`MongoDB connected: database ${JSON.stringify(mongoose.connection.name)}`))
+    .catch(() => console.error('MongoDB connection failed; check MONGO_URI, credentials, network access and DNS.'));
 
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/users', require('./routes/user.routes'));

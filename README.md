@@ -90,7 +90,7 @@ cd ..
 
 On Windows PowerShell, if execution policy blocks `npm.ps1`, use `npm.cmd` in place of `npm` in these commands.
 
-Create one `.env` at the repository root with the variables below. It stays gitignored; do not commit credentials. The server and both seed scripts load it through explicit paths relative to their source files, independently of the working directory. Compose reads the same root file but supplies its own MongoDB URI. Environment variables already supplied to the process take precedence.
+Create one `.env` at the repository root with the variables below. It stays gitignored; do not commit credentials. The server and both seed scripts load it through explicit paths relative to their source files, independently of the working directory. Compose reads the same root file and requires a nonempty `MONGO_URI`. Environment variables already supplied to the process take precedence.
 
 To populate a development database, choose **one** seed command. **Both delete every existing standard `Problem` document before inserting their dataset.** They do not merge datasets or import from LeetCode, and they do not delete users, templates, custom problems, or match history.
 
@@ -114,7 +114,7 @@ The root `.env` is the only environment file. Set these names; never commit real
 
 | Name | Description | Required/optional |
 | --- | --- | --- |
-| `MONGO_URI` | Local Node/seed MongoDB URI: use a reachable local database or Atlas. Compose always overrides this with `mongodb://mongo:27017/codeduel`. | Required locally |
+| `MONGO_URI` | MongoDB URI shared by local Node, seed scripts and Compose. Include the intended database name; an omitted name defaults to `test`. | Required |
 | `JWT_SECRET` | Long random signing secret shared by local and Docker runs. | Required |
 | `PISTON_URL` | Full execution endpoint; defaults to `https://emkc.org/api/v2/piston/execute`. Must accept unauthenticated requests with runtime `18.15.0`. | Optional |
 | `CLIENT_ORIGIN` | Allowed REST and Socket.IO browser origin. Use `http://localhost:8080` for default Docker ports or `http://localhost:5173` for local Vite. | Set to match the browser URL |
@@ -207,7 +207,19 @@ With Docker Desktop running Linux containers, create the root `.env` using the v
 docker compose up --build
 ```
 
-Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. MongoDB 8 is internal to the Compose network with persistent data in a named volume. Compose ignores the local `MONGO_URI` and always connects to its `mongo` service. The root environment file is outside both build contexts and is never copied into an image.
+Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. Default mode uses Atlas through `MONGO_URI` and starts only client and server. Allow the backend machine's outbound IP in Atlas Network Access and provide a database user with access to the intended database. The root environment file is outside both build contexts and is never copied into an image.
+
+For optional local MongoDB 8, set `MONGO_URI=mongodb://mongo:27017/codeduel` in root `.env`, then run:
+
+```powershell
+docker compose --profile localdb up --build
+```
+
+The optional service uses `mongo_data`, is not published to the host, and runs with `--quiet` and a 30-second healthcheck. Volume declarations cannot have profiles; only the optional Mongo service uses this volume. Restore the Atlas `MONGO_URI` to switch back, and use `docker compose --profile localdb down` before changing modes to remove any previously running local container.
+
+All healthchecks run every 30 seconds. Nginx omits access logs only for `/healthz`; ordinary access and error logs remain enabled. The backend healthcheck uses TCP and produces no HTTP request logs. Its healthcheck confirms a listening socket, not database connectivity; check the separate MongoDB connection message.
+
+Choose only one seed command. From `server/`, run `npm run seed` or `npm run seed:leetcode`. In Docker, run `docker compose exec server npm run seed` or `docker compose exec server npm run seed:leetcode`. Both print the database name before writing, delete every standard Problem document, and then insert their dataset; other collections are untouched. These commands target the configured database, including Atlas, and must not be run casually against existing data.
 
 Stop while retaining database data:
 

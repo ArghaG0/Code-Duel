@@ -1,12 +1,18 @@
+# Default Atlas mode: set MONGO_URI in root .env; docker compose up --build
+# Local mode: set MONGO_URI=mongodb://mongo:27017/codeduel in root .env;
+# docker compose --profile localdb up --build
+# mongo_data is used only by the localdb service; volume declarations cannot have profiles.
 services:
   mongo:
     image: mongo:8
+    profiles: [localdb]
+    command: [mongod, --quiet]
     restart: unless-stopped
     volumes:
       - mongo_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand({ ping: 1 }).ok ? 0 : 1)"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 10
       start_period: 30s
@@ -21,19 +27,15 @@ services:
     environment:
       NODE_ENV: production
       PORT: "5000"
-      # Keep local/Atlas settings in the root .env separate from Compose MongoDB.
-      MONGO_URI: mongodb://mongo:27017/codeduel
+      MONGO_URI: ${MONGO_URI:?MONGO_URI must be set in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
       PISTON_URL: ${PISTON_URL:-https://emkc.org/api/v2/piston/execute}
       CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-5000}:5000"
-    depends_on:
-      mongo:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "const socket = require('node:net').connect(5000, '127.0.0.1', () => { socket.end(); process.exit(0); }); socket.setTimeout(3000, () => process.exit(1)); socket.on('error', () => process.exit(1));"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 10
       start_period: 20s
@@ -51,8 +53,8 @@ services:
       server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/"]
-      interval: 10s
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
       timeout: 5s
       retries: 5
       start_period: 10s
