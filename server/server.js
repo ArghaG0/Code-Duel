@@ -10,20 +10,20 @@ const RoomTemplate = require('./models/roomTemplate.model');
 const CustomProblem = require('./models/customProblem.model');
 const User = require('./models/user.model');
 
-dotenv.config();
+dotenv.config({ path: require('node:path').resolve(__dirname, '../.env') });
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
         methods: ["GET", "POST"]
     }
 });
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB Connected'))

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Problem = require('../models/problem.model');
 
-dotenv.config();
+dotenv.config({ path: require('node:path').resolve(__dirname, '../../.env') });
 
 const problems = [
     {

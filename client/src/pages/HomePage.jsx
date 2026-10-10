@@ -4,7 +4,7 @@ import axios from 'axios';
 import { FaCode, FaTrophy, FaBolt, FaUserSecret, FaGamepad } from 'react-icons/fa'; 
 import io from 'socket.io-client';
 
-const socket = io.connect("http://localhost:5000");
+const socket = io.connect(import.meta.env.DEV ? "http://localhost:5000" : undefined);
 
 const features = [
     {

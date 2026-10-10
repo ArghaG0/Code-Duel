@@ -30,7 +30,7 @@ Versions below are the declared package ranges, not a reproducible dependency lo
 
 ```text
 .
-├── .gitignore                 # Ignores secrets, dependencies, builds, and lockfiles
+├── .gitignore                 # Ignores secrets, dependencies, and builds
 ├── client/
 │   ├── package.json           # Dev, build, lint, and preview scripts
 │   ├── vite.config.js         # /api proxy to localhost:5000
@@ -82,15 +82,15 @@ There is no root package or workspace runner. From the repository root, install 
 
 ```sh
 cd server
-npm install
+npm ci
 cd ../client
-npm install
+npm ci
 cd ..
 ```
 
 On Windows PowerShell, if execution policy blocks `npm.ps1`, use `npm.cmd` in place of `npm` in these commands.
 
-Create a local `server/.env` containing the required variables listed below. It is ignored by Git; there is no committed environment example. Run server commands from `server/` so `dotenv.config()` reads that file. No client environment variables are referenced in the application code.
+Create one `.env` at the repository root with the variables below. It stays gitignored; do not commit credentials. The server and both seed scripts load it through explicit paths relative to their source files, independently of the working directory. Compose reads the same root file but supplies its own MongoDB URI. Environment variables already supplied to the process take precedence.
 
 To populate a development database, choose **one** seed command. **Both delete every existing standard `Problem` document before inserting their dataset.** They do not merge datasets or import from LeetCode, and they do not delete users, templates, custom problems, or match history.
 
@@ -110,15 +110,19 @@ The larger dataset contains incompatible expected-output formatting for some pro
 
 ## Environment variables
 
-Only these environment variables are read by server code. Values and secrets are intentionally omitted.
+The root `.env` is the only environment file. Set these names; never commit real credentials.
 
 | Name | Description | Required/optional |
 | --- | --- | --- |
-| `MONGO_URI` | MongoDB connection URI used by the server and both seed scripts. | Required |
-| `JWT_SECRET` | Secret used to sign and verify authentication tokens; tokens expire after 30 days. | Required for authentication |
-| `PORT` | HTTP and Socket.IO listening port; the server falls back to port 5000. | Optional |
+| `MONGO_URI` | Local Node/seed MongoDB URI: use a reachable local database or Atlas. Compose always overrides this with `mongodb://mongo:27017/codeduel`. | Required locally |
+| `JWT_SECRET` | Long random signing secret shared by local and Docker runs. | Required |
+| `PISTON_URL` | Full execution endpoint; defaults to `https://emkc.org/api/v2/piston/execute`. Must accept unauthenticated requests with runtime `18.15.0`. | Optional |
+| `CLIENT_ORIGIN` | Allowed REST and Socket.IO browser origin. Use `http://localhost:8080` for default Docker ports or `http://localhost:5173` for local Vite. | Set to match the browser URL |
+| `WEB_PORT` | Published nginx port; defaults to 8080. | Optional, Compose only |
+| `BACKEND_PORT` | Published backend debug port on host loopback; defaults to 5000. | Optional, Compose only |
+| `PORT` | Local backend listening port; defaults to 5000. Compose fixes the container port at 5000. | Optional |
 
-Changing `PORT` alone does not update the client: `client/vite.config.js`, `client/src/socket.js`, and `client/src/pages/HomePage.jsx` all target port 5000. Socket.IO allows the browser origin `http://localhost:5173` in `server/server.js`; REST uses unrestricted `cors()`.
+Local Vite API proxy and socket connections target backend port 5000. Production sockets use the browser origin through nginx. Changing a host port requires updating `CLIENT_ORIGIN` to match the frontend URL.
 
 ## Usage / running the project
 
@@ -136,7 +140,7 @@ cd client
 npm run dev
 ```
 
-Use `http://localhost:5173` with the default development setup. Keep that port available because Socket.IO's allowed origin is hardcoded. The Vite `/api` proxy forwards HTTP requests to `http://localhost:5000`; sockets connect directly to that backend.
+Use `http://localhost:5173` with the default development setup and set `CLIENT_ORIGIN=http://localhost:5173` in the root `.env`. The Vite `/api` proxy forwards HTTP requests to `http://localhost:5000`; sockets connect directly to that backend.
 
 Register at `/register`, then use `/lobby` to queue with a second user. Use `/custom/create` to author problems and templates, and `/custom` to browse or join rooms by code. A spectator must join while the room is waiting, before the second player starts the match. `/account` supports username editing and match history; `/battle` expects match data supplied by navigation from matchmaking.
 
@@ -197,26 +201,27 @@ Manual smoke checks should cover registration/login, username changes, a two-use
 
 ## Deployment
 
-No Dockerfile, Compose file, Procfile, Vercel configuration, CI workflow, or production hosting configuration is committed.
+With Docker Desktop running Linux containers, create the root `.env` using the variable table above, set a real `JWT_SECRET`, and run from the repository root:
 
-The backend's non-watch start command, from the repository root, is:
-
-```sh
-cd server
-npm start
+```powershell
+docker compose up --build
 ```
 
-The client build and local preview commands, from the repository root, are:
+Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. MongoDB 8 is internal to the Compose network with persistent data in a named volume. Compose ignores the local `MONGO_URI` and always connects to its `mongo` service. The root environment file is outside both build contexts and is never copied into an image.
 
-```sh
-cd client
-npm run build
-npm run preview
+Stop while retaining database data:
+
+```powershell
+docker compose down
 ```
 
-Vite generates `client/dist/` (a build artifact, not a committed directory). Preview is for inspecting the build locally; its origin differs from the backend's hardcoded Socket.IO origin unless configured otherwise.
+To delete the database volume as well (destructive):
 
-**TODO: confirm** the production hosting, domains, and reverse-proxy configuration. A deployment needs static client hosting with BrowserRouter fallback, HTTP `/api` routing to Express, and Socket.IO connectivity. Express does not serve the client build. The hardcoded backend URLs and socket origin need deployment-specific changes. The current in-memory match state assumes one backend process; no shared state or Socket.IO adapter is configured.
+```powershell
+docker compose down -v
+```
+
+Both package lockfiles must be present for the Dockerfiles' `npm ci` steps. The frontend uses a Node 20 build stage and nginx with SPA, API, and WebSocket routing. The backend runs as the unprivileged Node user. Piston remains external; no execution service is included. A new local database needs problem data before matchmaking works. The current in-memory match state assumes one backend process.
 
 ## Known issues and limitations
 
@@ -229,4 +234,4 @@ Vite generates `client/dist/` (a build artifact, not a committed directory). Pre
 - **Template lifecycle gaps.** The UI collects a template description, but the create/update controllers omit it. Editing a template creates new custom-problem documents; deleting a template does not delete its problems. Room passwords are stored in plaintext, and socket-based template launching does not check template ownership.
 - **Browser-only enforcement can misfire or be bypassed.** Focus changes and large/fast edits cause forfeits; these checks are not authoritative server controls. Active-match reconnection/resumption is not implemented.
 - **Incomplete UI/integration.** The home page links to `/leaderboard`, but `client/src/App.jsx` has no such route. It advertises Python/C++/Java although the arena and harness use JavaScript. It also opens a second socket and emits `join_room`, which has no server handler. Avatar editing is deferred in a controller comment.
-- **Operational gaps.** Database connection failures are logged while the HTTP server still starts. Several socket errors are only logged, and some async handlers lack local error handling. No migrations, health-check endpoint, automated tests, or CI are supplied. Lockfiles are ignored by `.gitignore`, so fresh installs are not reproducible from tracked files alone.
+- **Operational gaps.** Database connection failures are logged while the HTTP server still starts. Several socket errors are only logged, and some async handlers lack local error handling. No migrations, health-check endpoint, automated tests, or CI are supplied. Both package lockfiles are available for version control and used by `npm ci`.

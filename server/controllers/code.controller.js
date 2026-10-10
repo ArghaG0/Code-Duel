@@ -24,7 +24,7 @@ const withExecutionLimit = handler => async (req, res) => {
 };
 
 const runPiston = async (code, language) => {
-    const response = await axios.post('https://emkc.org/api/v2/piston/execute', {
+    const response = await axios.post(process.env.PISTON_URL || 'https://emkc.org/api/v2/piston/execute', {
         language: language || 'javascript',
         version: '18.15.0',
         files: [{ content: code }]

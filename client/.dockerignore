@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+.env*
+.git
+test
+tests
+docs
+coverage
+*.log
+npm-debug.log*
+yarn-error.log*
