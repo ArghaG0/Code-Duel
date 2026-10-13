@@ -73,7 +73,7 @@ The client keeps its JWT in `localStorage` and sends it as a Bearer token for pr
 
 - Node.js and npm. The locally installed Vite 7.1.5 declares Node `^20.19.0 || >=22.12.0`. **TODO: confirm** the project's supported Node/npm versions; neither package declares `engines` and no runtime version file is committed.
 - An accessible MongoDB database. **TODO: confirm** the supported MongoDB version; none is pinned.
-- Network access from the server to `https://emkc.org/api/v2/piston/execute` for running/submitting code. The controller hardcodes runtime version `18.15.0` and sends no API credentials. **TODO: confirm** that this endpoint permits these requests and provides that runtime in the intended environment.
+- Self-hosted Piston with Node `18.15.0` installed. Docker Desktop must use Linux containers with cgroup v2; the Piston container runs privileged.
 - A browser for the client, with separate browser profiles or devices for two-player testing.
 
 ## Installation and setup
@@ -114,7 +114,7 @@ The root `.env` is the only environment file. Set these names; never commit real
 | --- | --- | --- |
 | `MONGO_URI` | MongoDB URI shared by local Node, seed scripts and Compose. Include the intended database name; an omitted name defaults to `test`. | Required |
 | `JWT_SECRET` | Long random signing secret shared by local and Docker runs. | Required |
-| `PISTON_URL` | Full execution endpoint; defaults to `https://emkc.org/api/v2/piston/execute`. Must accept unauthenticated requests with runtime `18.15.0`. | Optional |
+| `PISTON_URL` | Full execution endpoint, with no path appended. Local backend: `http://localhost:2000/api/v2/execute`. Compose overrides this with `http://piston:2000/api/v2/execute`. | Set for local runs |
 | `CLIENT_ORIGIN` | Allowed REST and Socket.IO browser origin. Use `http://localhost:8080` for default Docker ports or `http://localhost:5173` for local Vite. | Set to match the browser URL |
 | `WEB_PORT` | Published nginx port; defaults to 8080. | Optional, Compose only |
 | `BACKEND_PORT` | Published backend debug port on host loopback; defaults to 5000. | Optional, Compose only |
@@ -205,7 +205,7 @@ With Docker Desktop running Linux containers, create the root `.env` using the v
 docker compose up --build
 ```
 
-Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. Default mode uses Atlas through `MONGO_URI` and starts only client and server. Allow the backend machine's outbound IP in Atlas Network Access and provide a database user with access to the intended database. The root environment file is outside both build contexts and is never copied into an image.
+Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. Default mode uses Atlas through `MONGO_URI` and starts client, server, and Piston. Allow the backend machine's outbound IP in Atlas Network Access and provide a database user with access to the intended database. The root environment file is outside both build contexts and is never copied into an image.
 
 For optional local MongoDB 8, set `MONGO_URI=mongodb://mongo:27017/codeduel` in root `.env`, then run:
 
@@ -231,7 +231,28 @@ To delete the database volume as well (destructive):
 docker compose down -v
 ```
 
-Both package lockfiles must be present for the Dockerfiles' `npm ci` steps. The frontend uses a Node 20 build stage and nginx with SPA, API, and WebSocket routing. The backend runs as the unprivileged Node user. Piston remains external; no execution service is included. A new local database needs problem data before matchmaking works. The current in-memory match state assumes one backend process.
+Both package lockfiles must be present for the Dockerfiles' `npm ci` steps. The frontend uses a Node 20 build stage and nginx with SPA, API, and WebSocket routing. The backend runs as the unprivileged Node user. Piston is included as a separate privileged service; install its JavaScript runtime once as described below. A new local database needs problem data before matchmaking works. The current in-memory match state assumes one backend process.
+
+## Self-hosted code execution
+
+The pinned official Piston image runs on the Compose network. The backend uses `http://piston:2000/api/v2/execute`; local `npm run dev --prefix server` uses root `.env` with `PISTON_URL=http://localhost:2000/api/v2/execute`. There is no root `npm run server` script. The controller remains unchanged and requests `javascript` version `18.15.0`.
+
+Start the stack from the repository root:
+
+```powershell
+docker compose up --build -d
+```
+
+Once Piston is responding, install the runtime once (repeat after the package volume is wiped):
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:2000/api/v2/packages' -ContentType 'application/json' -Body '{"language":"node","version":"18.15.0"}' -TimeoutSec 300
+Invoke-RestMethod -Uri 'http://localhost:2000/api/v2/runtimes'
+```
+
+Packages persist in `piston_packages`. `docker compose down` preserves them; `docker compose down -v` deletes them along with other Compose volumes. Stop the stack with `docker compose down`.
+
+Piston is privileged to support isolate and cgroups. Treat it as a sensitive execution service: do not expose its unauthenticated execution or package APIs publicly. Port 2000 is bound only to `127.0.0.1`; it is also reachable by containers on the Compose network. No application secrets or source folders are mounted into Piston. Job storage and /tmp use tmpfs. Its healthcheck checks API availability, not runtime installation or successful sandbox execution. Backend startup does not depend on Piston health.
 
 ## Known issues and limitations
 
