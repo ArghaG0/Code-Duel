@@ -1,0 +1,102 @@
+{
+  "database": "test",
+  "targetHash": "97f52791669d59fd5fe5543cca297a512d19f391f456fde8c95970b3c7ca820b",
+  "inserted": [
+    {
+      "_id": "6acdd9153a034b814a3a63d0",
+      "title": "Running Parcel Totals"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a63d9",
+      "title": "Earliest Lonely Letter"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a63e2",
+      "title": "Sorted Shelf Union"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a63eb",
+      "title": "Round Bracket Audit"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a63f4",
+      "title": "Shelf Insertion Index"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a63fd",
+      "title": "Best Single Resale"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a6406",
+      "title": "Zeroes to the Tail"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a640f",
+      "title": "Longest Equal Streak"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a6418",
+      "title": "Matching Pair Count"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a6421",
+      "title": "Shared Starting Text"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a642a",
+      "title": "Distinct Window Length"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a6433",
+      "title": "Target Segment Count"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a643c",
+      "title": "Next Warmer Wait"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a6445",
+      "title": "Merged Booking Spans"
+    },
+    {
+      "_id": "6acdd9163a034b814a3a644e",
+      "title": "Fewest Coin Pieces"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a6457",
+      "title": "Strict Ascent Length"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a6460",
+      "title": "Island Cluster Count"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a6469",
+      "title": "Exact Subset Count"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a6472",
+      "title": "Shortest Unweighted Route"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a647b",
+      "title": "Histogram Banner Area"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a6484",
+      "title": "Window Peak Sequence"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a648d",
+      "title": "Rain Between Pillars"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a6496",
+      "title": "Cheapest Stick Cuts"
+    },
+    {
+      "_id": "6acdd9173a034b814a3a649f",
+      "title": "Queens Placement Count"
+    }
+  ]
+}

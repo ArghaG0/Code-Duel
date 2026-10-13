@@ -49,7 +49,7 @@ Versions below are the declared package ranges, not a reproducible dependency lo
     ├── controllers/           # Auth, profile, execution, templates, and history
     ├── middleware/            # Bearer-token authentication
     ├── models/                # User, Problem, CustomProblem, RoomTemplate, Match
-    └── data/                  # Two alternative problem seed datasets
+    └── scripts/               # Insert-only seed, problem data, and rollback ledger
 ```
 
 ## Architecture overview
@@ -90,23 +90,21 @@ cd ..
 
 On Windows PowerShell, if execution policy blocks `npm.ps1`, use `npm.cmd` in place of `npm` in these commands.
 
-Create one `.env` at the repository root with the variables below. It stays gitignored; do not commit credentials. The server and both seed scripts load it through explicit paths relative to their source files, independently of the working directory. Compose reads the same root file and requires a nonempty `MONGO_URI`. Environment variables already supplied to the process take precedence.
+Create one `.env` at the repository root with the variables below. It stays gitignored; do not commit credentials. The server and the seed script load it through explicit paths relative to their source files, independently of the working directory. Compose reads the same root file and requires a nonempty `MONGO_URI`. Environment variables already supplied to the process take precedence.
 
-To populate a development database, choose **one** seed command. **Both delete every existing standard `Problem` document before inserting their dataset.** They do not merge datasets or import from LeetCode, and they do not delete users, templates, custom problems, or match history.
-
-From `server/`, the minimal dataset contains Two Sum and Palindrome Number:
+The seed contains 24 original problems (10 Easy, 9 Medium, 5 Hard). From `server/`, preview missing titles with a dry run:
 
 ```sh
 npm run seed
 ```
 
-Alternatively, the larger dataset contains 15 LeetCode-style problems:
+Insert missing titles without changing existing documents:
 
 ```sh
-npm run seed:leetcode
+npm run seed -- --write
 ```
 
-The larger dataset contains incompatible expected-output formatting for some problems; see known issues. Standard matchmaking requires a nonempty problem collection, and round advancement needs a problem other than the current one.
+Write mode requires the matching private verification report. To remove only records recorded by this seed, run `npm run seed -- --rollback`. See [seed instructions](server/scripts/README.md) for verification requirements and rollback details. Standard matchmaking requires a nonempty problem collection, and round advancement needs a problem other than the current one.
 
 ## Environment variables
 
@@ -219,7 +217,7 @@ The optional service uses `mongo_data`, is not published to the host, and runs w
 
 All healthchecks run every 30 seconds. Nginx omits access logs only for `/healthz`; ordinary access and error logs remain enabled. The backend healthcheck uses TCP and produces no HTTP request logs. Its healthcheck confirms a listening socket, not database connectivity; check the separate MongoDB connection message.
 
-Choose only one seed command. From `server/`, run `npm run seed` or `npm run seed:leetcode`. In Docker, run `docker compose exec server npm run seed` or `docker compose exec server npm run seed:leetcode`. Both print the database name before writing, delete every standard Problem document, and then insert their dataset; other collections are untouched. These commands target the configured database, including Atlas, and must not be run casually against existing data.
+From `server/`, run `npm run seed` for a dry run and `npm run seed -- --write` to insert missing titles. Both use the configured database, including Atlas. Docker supports the read-only preview with `docker compose exec server npm run seed`; write mode requires the private verification report, which is deliberately excluded from images, so perform verified seeding locally. Existing records are never overwritten by seeding.
 
 Stop while retaining database data:
 
@@ -242,7 +240,6 @@ Both package lockfiles must be present for the Dockerfiles' `npm ci` steps. The 
 - **Execution endpoints are public.** There is no route authentication, explicit rate limiter, or Axios request timeout for Piston. Input validation is limited; an empty test-case list produces a successful submission without running code.
 - **Custom-match outcomes can be wrong.** On the last problem, `round_won` chooses that event's socket as the winner instead of comparing total scores. **TODO: confirm** intended custom-match victory and tie rules.
 - **Time limits are not enforced.** Template `timeLimit` is stored but not used by match logic. The arena counts down from 300 seconds without ending the match at zero or resetting the timer each round. **TODO: confirm** intended timer and timeout behavior.
-- **Seed output mismatches.** Group Anagrams and Reverse String in `server/data/seedLeetCode.js` use single-quoted expected arrays, which cannot equal the harness's JSON-serialized arrays. Exact string comparison also rejects otherwise equivalent output orderings.
 - **Template lifecycle gaps.** The UI collects a template description, but the create/update controllers omit it. Editing a template creates new custom-problem documents; deleting a template does not delete its problems. Room passwords are stored in plaintext, and socket-based template launching does not check template ownership.
 - **Browser-only enforcement can misfire or be bypassed.** Focus changes and large/fast edits cause forfeits; these checks are not authoritative server controls. Active-match reconnection/resumption is not implemented.
 - **Incomplete UI/integration.** The home page links to `/leaderboard`, but `client/src/App.jsx` has no such route. It advertises Python/C++/Java although the arena and harness use JavaScript. It also opens a second socket and emits `join_room`, which has no server handler. Avatar editing is deferred in a controller comment.

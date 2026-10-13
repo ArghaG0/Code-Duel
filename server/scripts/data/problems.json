@@ -1,0 +1,770 @@
+[
+  {
+    "title": "Running Parcel Totals",
+    "difficulty": "Easy",
+    "description": "For each position in weights, return the sum of all weights from the start through that position, in the original order.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [2,3,-1]\nOutput: [2,5,4]\n\nConstraints:\n- 0 <= weights.length <= 100\n- Each weight is an integer from -100 to 100",
+    "starterCode": "function parcelTotals(weights) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[2,3,-1]",
+        "output": "[2,5,4]"
+      },
+      {
+        "input": "[]",
+        "output": "[]"
+      },
+      {
+        "input": "[7]",
+        "output": "[7]"
+      },
+      {
+        "input": "[0,0,0]",
+        "output": "[0,0,0]"
+      },
+      {
+        "input": "[-3,-2,8]",
+        "output": "[-3,-5,3]"
+      },
+      {
+        "input": "[-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]",
+        "output": "[-10,-19,-27,-34,-40,-45,-49,-52,-54,-55,-55,-54,-52,-49,-45,-40,-34,-27,-19,-10,0,11,23,36,50,65,81,98,116,135]"
+      }
+    ]
+  },
+  {
+    "title": "Earliest Lonely Letter",
+    "difficulty": "Easy",
+    "description": "Return the index of the first character that occurs exactly once in text. Indices start at zero. Return -1 if every character repeats or text is empty.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: \"swiss\"\nOutput: 1\n\nConstraints:\n- 0 <= text.length <= 100\n- text contains only lowercase English letters",
+    "starterCode": "function lonelyLetter(text) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "\"swiss\"",
+        "output": "1"
+      },
+      {
+        "input": "\"\"",
+        "output": "-1"
+      },
+      {
+        "input": "\"a\"",
+        "output": "0"
+      },
+      {
+        "input": "\"aabb\"",
+        "output": "-1"
+      },
+      {
+        "input": "\"aabbc\"",
+        "output": "4"
+      },
+      {
+        "input": "\"abcdefghijklmnopqrstuvwxyza\"",
+        "output": "1"
+      }
+    ]
+  },
+  {
+    "title": "Sorted Shelf Union",
+    "difficulty": "Easy",
+    "description": "Combine two nondecreasing integer arrays. Return each distinct value once, in increasing order.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,2,2], [2,3]\nOutput: [1,2,3]\n\nConstraints:\n- 0 <= each array length <= 60\n- Values are integers from -100 to 100\n- Both input arrays are sorted in nondecreasing order",
+    "starterCode": "function shelfUnion(left, right) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,2,2], [2,3]",
+        "output": "[1,2,3]"
+      },
+      {
+        "input": "[], []",
+        "output": "[]"
+      },
+      {
+        "input": "[], [4]",
+        "output": "[4]"
+      },
+      {
+        "input": "[-3,-1], [-2,-1]",
+        "output": "[-3,-2,-1]"
+      },
+      {
+        "input": "[5,5], [5,5]",
+        "output": "[5]"
+      },
+      {
+        "input": "[0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48], [0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57,60,63,66,69,72]",
+        "output": "[0,2,3,4,6,8,9,10,12,14,15,16,18,20,21,22,24,26,27,28,30,32,33,34,36,38,39,40,42,44,45,46,48,51,54,57,60,63,66,69,72]"
+      }
+    ]
+  },
+  {
+    "title": "Round Bracket Audit",
+    "difficulty": "Easy",
+    "description": "Return true if each opening parenthesis has a later matching closing parenthesis and no closing parenthesis appears before its match. The empty string is valid.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: \"(()())\"\nOutput: true\n\nConstraints:\n- 0 <= text.length <= 100\n- Characters are only ( and )",
+    "starterCode": "function bracketAudit(text) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "\"(()())\"",
+        "output": "true"
+      },
+      {
+        "input": "\"\"",
+        "output": "true"
+      },
+      {
+        "input": "\"(\"",
+        "output": "false"
+      },
+      {
+        "input": "\")(\"",
+        "output": "false"
+      },
+      {
+        "input": "\"((()))()\"",
+        "output": "true"
+      },
+      {
+        "input": "\"((((((((((((((((((((((((()))))))))))))))))))))))))\"",
+        "output": "true"
+      }
+    ]
+  },
+  {
+    "title": "Shelf Insertion Index",
+    "difficulty": "Easy",
+    "description": "Return the smallest index whose value is at least target in a sorted array. If no such value exists, return the array length.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,3,3,7], 3\nOutput: 1\n\nConstraints:\n- 0 <= values.length <= 100\n- Values and target are integers from -100 to 100\n- values is sorted in nondecreasing order",
+    "starterCode": "function insertionIndex(values, target) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,3,3,7], 3",
+        "output": "1"
+      },
+      {
+        "input": "[], 4",
+        "output": "0"
+      },
+      {
+        "input": "[5], 2",
+        "output": "0"
+      },
+      {
+        "input": "[5], 6",
+        "output": "1"
+      },
+      {
+        "input": "[-5,-2,0], -3",
+        "output": "1"
+      },
+      {
+        "input": "[0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78], 37",
+        "output": "19"
+      }
+    ]
+  },
+  {
+    "title": "Best Single Resale",
+    "difficulty": "Easy",
+    "description": "Buy once and sell on a later day, or make no trade. Return the largest possible profit. Each array entry is the price on that day.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [7,1,5,3,6,4]\nOutput: 5\n\nConstraints:\n- 0 <= prices.length <= 100\n- Each price is an integer from 0 to 1000",
+    "starterCode": "function resaleGain(prices) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[7,1,5,3,6,4]",
+        "output": "5"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[9]",
+        "output": "0"
+      },
+      {
+        "input": "[9,6,2]",
+        "output": "0"
+      },
+      {
+        "input": "[4,4,4]",
+        "output": "0"
+      },
+      {
+        "input": "[0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17,34,0,17]",
+        "output": "34"
+      }
+    ]
+  },
+  {
+    "title": "Zeroes to the Tail",
+    "difficulty": "Easy",
+    "description": "Return an array with all nonzero values in their original order followed by all zeroes. Preserve the length and do not sort the nonzero values.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [0,3,0,-2,4]\nOutput: [3,-2,4,0,0]\n\nConstraints:\n- 0 <= values.length <= 100\n- Each value is an integer from -100 to 100",
+    "starterCode": "function tailZeroes(values) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[0,3,0,-2,4]",
+        "output": "[3,-2,4,0,0]"
+      },
+      {
+        "input": "[]",
+        "output": "[]"
+      },
+      {
+        "input": "[0]",
+        "output": "[0]"
+      },
+      {
+        "input": "[2,1]",
+        "output": "[2,1]"
+      },
+      {
+        "input": "[0,0,0]",
+        "output": "[0,0,0]"
+      },
+      {
+        "input": "[0,1,2,0,4,5,0,7,8,0,10,11,0,13,14,0,16,17,0,19,20,0,22,23,0,25,26,0,28,29,0,31,32,0,34,35]",
+        "output": "[1,2,4,5,7,8,10,11,13,14,16,17,19,20,22,23,25,26,28,29,31,32,34,35,0,0,0,0,0,0,0,0,0,0,0,0]"
+      }
+    ]
+  },
+  {
+    "title": "Longest Equal Streak",
+    "difficulty": "Easy",
+    "description": "Return the length of the longest contiguous run of equal values. Return zero for an empty array.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [2,2,1,1,1,3]\nOutput: 3\n\nConstraints:\n- 0 <= values.length <= 100\n- Each value is an integer from -100 to 100",
+    "starterCode": "function equalStreak(values) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[2,2,1,1,1,3]",
+        "output": "3"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[7]",
+        "output": "1"
+      },
+      {
+        "input": "[4,4,4,4]",
+        "output": "4"
+      },
+      {
+        "input": "[-1,0,-1]",
+        "output": "1"
+      },
+      {
+        "input": "[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8]",
+        "output": "25"
+      }
+    ]
+  },
+  {
+    "title": "Matching Pair Count",
+    "difficulty": "Easy",
+    "description": "Count index pairs (i, j) with i < j and values[i] equal to values[j]. Different index pairs count separately.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,2,1,1]\nOutput: 3\n\nConstraints:\n- 0 <= values.length <= 100\n- Each value is an integer from -100 to 100",
+    "starterCode": "function matchingPairs(values) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,2,1,1]",
+        "output": "3"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[3]",
+        "output": "0"
+      },
+      {
+        "input": "[1,2,3]",
+        "output": "0"
+      },
+      {
+        "input": "[0,0,0,0]",
+        "output": "6"
+      },
+      {
+        "input": "[0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0,1,2,3,4]",
+        "output": "140"
+      }
+    ]
+  },
+  {
+    "title": "Shared Starting Text",
+    "difficulty": "Easy",
+    "description": "Return the longest string that is a prefix of every word. Return an empty string when words is empty or there is no common prefix.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [\"flower\",\"flow\",\"flight\"]\nOutput: \"fl\"\n\nConstraints:\n- 0 <= words.length <= 30\n- Each word has 0 to 60 lowercase English letters",
+    "starterCode": "function sharedStart(words) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[\"flower\",\"flow\",\"flight\"]",
+        "output": "\"fl\""
+      },
+      {
+        "input": "[]",
+        "output": "\"\""
+      },
+      {
+        "input": "[\"alone\"]",
+        "output": "\"alone\""
+      },
+      {
+        "input": "[\"\",\"abc\"]",
+        "output": "\"\""
+      },
+      {
+        "input": "[\"dog\",\"cat\"]",
+        "output": "\"\""
+      },
+      {
+        "input": "[\"sharedprefixa\",\"sharedprefixb\",\"sharedprefixc\",\"sharedprefixd\",\"sharedprefixe\",\"sharedprefixf\",\"sharedprefixg\",\"sharedprefixh\",\"sharedprefixi\",\"sharedprefixj\",\"sharedprefixk\",\"sharedprefixl\",\"sharedprefixm\",\"sharedprefixn\",\"sharedprefixo\",\"sharedprefixp\",\"sharedprefixq\",\"sharedprefixr\",\"sharedprefixs\",\"sharedprefixt\"]",
+        "output": "\"sharedprefix\""
+      }
+    ]
+  },
+  {
+    "title": "Distinct Window Length",
+    "difficulty": "Medium",
+    "description": "Return the maximum length of a contiguous substring with no repeated character. Return zero for empty text.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: \"abcabcbb\"\nOutput: 3\n\nConstraints:\n- 0 <= text.length <= 100\n- text contains lowercase English letters",
+    "starterCode": "function distinctWindow(text) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "\"abcabcbb\"",
+        "output": "3"
+      },
+      {
+        "input": "\"\"",
+        "output": "0"
+      },
+      {
+        "input": "\"a\"",
+        "output": "1"
+      },
+      {
+        "input": "\"bbbb\"",
+        "output": "1"
+      },
+      {
+        "input": "\"abba\"",
+        "output": "2"
+      },
+      {
+        "input": "\"abcdefghijklmnopqrstuvwxyzabcdefghijk\"",
+        "output": "26"
+      }
+    ]
+  },
+  {
+    "title": "Target Segment Count",
+    "difficulty": "Medium",
+    "description": "Count nonempty contiguous subarrays whose sum equals target. Subarrays with different start or end positions count separately.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,1,1], 2\nOutput: 2\n\nConstraints:\n- 0 <= values.length <= 100\n- Values and target are integers from -100 to 100",
+    "starterCode": "function targetSegments(values, target) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,1,1], 2",
+        "output": "2"
+      },
+      {
+        "input": "[], 0",
+        "output": "0"
+      },
+      {
+        "input": "[0], 0",
+        "output": "1"
+      },
+      {
+        "input": "[0,0,0], 0",
+        "output": "6"
+      },
+      {
+        "input": "[1,-1,1,-1], 0",
+        "output": "4"
+      },
+      {
+        "input": "[-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1,0,1,-1], 1",
+        "output": "182"
+      }
+    ]
+  },
+  {
+    "title": "Next Warmer Wait",
+    "difficulty": "Medium",
+    "description": "For each day return how many days must pass until a strictly higher temperature occurs. Return zero for that day if none follows.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [73,74,75,71,69,72,76,73]\nOutput: [1,1,4,2,1,1,0,0]\n\nConstraints:\n- 0 <= temperatures.length <= 100\n- Temperatures are integers from -50 to 100",
+    "starterCode": "function warmerWait(temperatures) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[73,74,75,71,69,72,76,73]",
+        "output": "[1,1,4,2,1,1,0,0]"
+      },
+      {
+        "input": "[]",
+        "output": "[]"
+      },
+      {
+        "input": "[10]",
+        "output": "[0]"
+      },
+      {
+        "input": "[2,2,2]",
+        "output": "[0,0,0]"
+      },
+      {
+        "input": "[3,2,1]",
+        "output": "[0,0,0]"
+      },
+      {
+        "input": "[0,7,14,21,28,4,11,18,25,1,8,15,22,29,5,12,19,26,2,9,16,23,30,6,13,20,27,3,10,17,24,0,7,14,21,28,4,11,18,25]",
+        "output": "[1,1,1,1,9,1,1,1,5,1,1,1,1,9,1,1,1,5,1,1,1,1,0,1,1,1,9,1,1,1,5,1,1,1,1,0,1,1,1,0]"
+      }
+    ]
+  },
+  {
+    "title": "Merged Booking Spans",
+    "difficulty": "Medium",
+    "description": "Each closed interval is [start, end]. Merge intervals that overlap or share an endpoint. Return the merged intervals sorted by start, with no overlaps.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [[1,3],[2,6],[8,10],[10,12]]\nOutput: [[1,6],[8,12]]\n\nConstraints:\n- 0 <= intervals.length <= 50\n- Integer endpoints satisfy -50 <= start <= end <= 50",
+    "starterCode": "function bookingSpans(intervals) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[[1,3],[2,6],[8,10],[10,12]]",
+        "output": "[[1,6],[8,12]]"
+      },
+      {
+        "input": "[]",
+        "output": "[]"
+      },
+      {
+        "input": "[[2,2]]",
+        "output": "[[2,2]]"
+      },
+      {
+        "input": "[[4,5],[1,4]]",
+        "output": "[[1,5]]"
+      },
+      {
+        "input": "[[-3,-1],[-2,0],[4,4]]",
+        "output": "[[-3,0],[4,4]]"
+      },
+      {
+        "input": "[[0,3],[2,5],[4,7],[6,9],[8,11],[10,13],[12,15],[14,17],[16,19],[18,21],[20,23],[22,25],[24,27],[26,29],[28,31],[30,33],[32,35],[34,37],[36,39],[38,41]]",
+        "output": "[[0,41]]"
+      }
+    ]
+  },
+  {
+    "title": "Fewest Coin Pieces",
+    "difficulty": "Medium",
+    "description": "Return the fewest coins needed to sum to amount when each denomination can be used unlimited times. Return -1 if impossible. Amount zero needs zero coins.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,2,5], 11\nOutput: 3\n\nConstraints:\n- 1 <= coins.length <= 8; denominations are distinct positive integers at most 20\n- 0 <= amount <= 80",
+    "starterCode": "function coinPieces(coins, amount) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,2,5], 11",
+        "output": "3"
+      },
+      {
+        "input": "[2], 3",
+        "output": "-1"
+      },
+      {
+        "input": "[3], 0",
+        "output": "0"
+      },
+      {
+        "input": "[7], 7",
+        "output": "1"
+      },
+      {
+        "input": "[4,6], 7",
+        "output": "-1"
+      },
+      {
+        "input": "[1,7,11], 73",
+        "output": "7"
+      }
+    ]
+  },
+  {
+    "title": "Strict Ascent Length",
+    "difficulty": "Medium",
+    "description": "Return the longest length of a strictly increasing subsequence. You may skip elements but cannot reorder them. Equal values cannot extend the subsequence.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [10,9,2,5,3,7,101,18]\nOutput: 4\n\nConstraints:\n- 0 <= values.length <= 100\n- Each value is an integer from -100 to 200",
+    "starterCode": "function ascentLength(values) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[10,9,2,5,3,7,101,18]",
+        "output": "4"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[4]",
+        "output": "1"
+      },
+      {
+        "input": "[2,2,2]",
+        "output": "1"
+      },
+      {
+        "input": "[-3,-1,-2,0]",
+        "output": "3"
+      },
+      {
+        "input": "[0,13,26,39,1,14,27,40,2,15,28,41,3,16,29,42,4,17,30,43,5,18,31,44,6,19,32,45,7,20,33,46,8,21,34,47,9,22,35,48]",
+        "output": "13"
+      }
+    ]
+  },
+  {
+    "title": "Island Cluster Count",
+    "difficulty": "Medium",
+    "description": "Count groups of cells containing 1 connected horizontally or vertically. Diagonal contact does not connect groups. Cells containing 0 are water.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [[1,1,0],[0,1,0],[1,0,1]]\nOutput: 3\n\nConstraints:\n- grid is [] or a rectangular array with 1 to 8 rows and 1 to 8 columns\n- Every cell is 0 or 1",
+    "starterCode": "function islandClusters(grid) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[[1,1,0],[0,1,0],[1,0,1]]",
+        "output": "3"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[[0]]",
+        "output": "0"
+      },
+      {
+        "input": "[[1]]",
+        "output": "1"
+      },
+      {
+        "input": "[[1,0],[0,1]]",
+        "output": "2"
+      },
+      {
+        "input": "[[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0],[0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0]]",
+        "output": "32"
+      }
+    ]
+  },
+  {
+    "title": "Exact Subset Count",
+    "difficulty": "Medium",
+    "description": "Count subsets of indices whose selected values sum to target. Each index may be selected at most once. Equal values at different indices remain different choices. Count the empty subset when target is zero.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,2,3], 3\nOutput: 2\n\nConstraints:\n- 0 <= values.length <= 16\n- Each value is an integer from 0 to 20\n- 0 <= target <= 100",
+    "starterCode": "function subsetCount(values, target) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,2,3], 3",
+        "output": "2"
+      },
+      {
+        "input": "[], 0",
+        "output": "1"
+      },
+      {
+        "input": "[], 1",
+        "output": "0"
+      },
+      {
+        "input": "[0,0], 0",
+        "output": "4"
+      },
+      {
+        "input": "[2,2,2], 4",
+        "output": "3"
+      },
+      {
+        "input": "[0,1,2,3,4,0,1,2,3,4,0,1,2,3,4,0], 12",
+        "output": "4448"
+      }
+    ]
+  },
+  {
+    "title": "Shortest Unweighted Route",
+    "difficulty": "Medium",
+    "description": "Return the fewest edges on a route from start to end in an undirected graph, or -1 if unreachable. Vertices are numbered 0 through n-1. A route from a vertex to itself has length zero.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: 5, [[0,1],[1,2],[0,3],[3,4],[4,2]], 0, 2\nOutput: 2\n\nConstraints:\n- 1 <= n <= 20\n- edges contains distinct pairs of different valid vertices\n- start and end are valid vertices",
+    "starterCode": "function routeLength(n, edges, start, end) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "5, [[0,1],[1,2],[0,3],[3,4],[4,2]], 0, 2",
+        "output": "2"
+      },
+      {
+        "input": "1, [], 0, 0",
+        "output": "0"
+      },
+      {
+        "input": "2, [], 0, 1",
+        "output": "-1"
+      },
+      {
+        "input": "3, [[0,1],[1,2]], 2, 0",
+        "output": "2"
+      },
+      {
+        "input": "4, [[0,1],[2,3]], 0, 3",
+        "output": "-1"
+      },
+      {
+        "input": "20, [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,12],[12,13],[13,14],[14,15],[15,16],[16,17],[17,18],[18,19]], 0, 19",
+        "output": "19"
+      }
+    ]
+  },
+  {
+    "title": "Histogram Banner Area",
+    "difficulty": "Hard",
+    "description": "Adjacent bars each have width one. Return the largest area of a rectangle contained under the histogram. A rectangle may span consecutive bars only.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [2,1,5,6,2,3]\nOutput: 10\n\nConstraints:\n- 0 <= heights.length <= 100\n- Each height is an integer from 0 to 100",
+    "starterCode": "function bannerArea(heights) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[2,1,5,6,2,3]",
+        "output": "10"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[7]",
+        "output": "7"
+      },
+      {
+        "input": "[0,0]",
+        "output": "0"
+      },
+      {
+        "input": "[3,3,3]",
+        "output": "9"
+      },
+      {
+        "input": "[0,11,22,10,21,9,20,8,19,7,18,6,17,5,16,4,15,3,14,2,13,1,12,0,11,22,10,21,9,20,8,19,7,18,6,17,5,16,4,15,3,14,2,13,1]",
+        "output": "72"
+      }
+    ]
+  },
+  {
+    "title": "Window Peak Sequence",
+    "difficulty": "Hard",
+    "description": "Slide a window of width elements from left to right by one position at a time. Return the maximum in each window in that order.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [1,3,-1,-3,5,3,6,7], 3\nOutput: [3,3,5,5,6,7]\n\nConstraints:\n- 1 <= values.length <= 100\n- 1 <= width <= values.length\n- Each value is an integer from -100 to 100",
+    "starterCode": "function windowPeaks(values, width) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[1,3,-1,-3,5,3,6,7], 3",
+        "output": "[3,3,5,5,6,7]"
+      },
+      {
+        "input": "[5], 1",
+        "output": "[5]"
+      },
+      {
+        "input": "[-4,-2,-5], 2",
+        "output": "[-2,-2]"
+      },
+      {
+        "input": "[2,2,2], 2",
+        "output": "[2,2]"
+      },
+      {
+        "input": "[1,4,2], 3",
+        "output": "[4]"
+      },
+      {
+        "input": "[-20,-3,14,-16,1,18,-12,5,22,-8,9,26,-4,13,-17,0,17,-13,4,21,-9,8,25,-5,12,-18,-1,16,-14,3,20,-10,7,24,-6,11,-19,-2,15,-15,2,19,-11,6,23], 9",
+        "output": "[22,22,22,26,26,26,26,26,26,26,26,26,21,21,25,25,25,25,25,25,25,25,25,20,20,24,24,24,24,24,24,24,24,24,19,19,23]"
+      }
+    ]
+  },
+  {
+    "title": "Rain Between Pillars",
+    "difficulty": "Hard",
+    "description": "Unit-width pillars stand side by side on level ground. Return the total number of unit squares of water that remain between them after rain; water beyond either end drains away.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: [0,1,0,2,1,0,1,3,2,1,2,1]\nOutput: 6\n\nConstraints:\n- 0 <= heights.length <= 100\n- Each height is an integer from 0 to 100",
+    "starterCode": "function rainVolume(heights) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "[0,1,0,2,1,0,1,3,2,1,2,1]",
+        "output": "6"
+      },
+      {
+        "input": "[]",
+        "output": "0"
+      },
+      {
+        "input": "[5]",
+        "output": "0"
+      },
+      {
+        "input": "[3,3,3]",
+        "output": "0"
+      },
+      {
+        "input": "[4,0,0,4]",
+        "output": "8"
+      },
+      {
+        "input": "[0,7,14,2,9,16,4,11,18,6,13,1,8,15,3,10,17,5,12,0,7,14,2,9,16,4,11,18,6,13,1,8,15,3,10,17,5,12,0,7,14,2,9,16,4]",
+        "output": "331"
+      }
+    ]
+  },
+  {
+    "title": "Cheapest Stick Cuts",
+    "difficulty": "Hard",
+    "description": "Cut a stick at every listed position. A cut costs the length of the current piece being cut. Choose the order to minimize total cost and return that cost. Positions are measured from the original left end.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: 7, [1,3,4,5]\nOutput: 16\n\nConstraints:\n- 1 <= length <= 100\n- cuts contains 0 to 8 distinct integer positions strictly between 0 and length\n- cuts may be unsorted",
+    "starterCode": "function stickCuts(length, cuts) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "7, [1,3,4,5]",
+        "output": "16"
+      },
+      {
+        "input": "5, []",
+        "output": "0"
+      },
+      {
+        "input": "2, [1]",
+        "output": "2"
+      },
+      {
+        "input": "10, [8,2]",
+        "output": "18"
+      },
+      {
+        "input": "9, [5,6,1,4,2]",
+        "output": "22"
+      },
+      {
+        "input": "30, [2,5,9,13,18,23,27,29]",
+        "output": "93"
+      }
+    ]
+  },
+  {
+    "title": "Queens Placement Count",
+    "difficulty": "Hard",
+    "description": "Place size queens on a size by size chessboard so no two share a row, column, or diagonal. Return the number of distinct placements. Rotations and reflections count separately when their occupied squares differ.\n\nThe function must RETURN the result, not print it.\n\nExample:\nInput: 4\nOutput: 2\n\nConstraints:\n- 1 <= size <= 8",
+    "starterCode": "function queenCount(size) {\n  // Write your solution here.\n}",
+    "testCases": [
+      {
+        "input": "4",
+        "output": "2"
+      },
+      {
+        "input": "1",
+        "output": "1"
+      },
+      {
+        "input": "2",
+        "output": "0"
+      },
+      {
+        "input": "3",
+        "output": "0"
+      },
+      {
+        "input": "6",
+        "output": "4"
+      },
+      {
+        "input": "8",
+        "output": "92"
+      }
+    ]
+  }
+]
