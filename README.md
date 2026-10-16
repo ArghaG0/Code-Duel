@@ -1,6 +1,6 @@
 # CodeDuel
 
-CodeDuel is a browser-based, one-on-one coding duel application for programmers who want to practice solving problems against another player. A React client provides accounts, matchmaking, a JavaScript editor, and custom rooms; an Express/Socket.IO server coordinates matches, stores data in MongoDB, and sends code to Piston for execution. Ranked progression and some custom-match rules have implementation gaps documented below.
+CodeDuel is a browser-based, one-on-one coding duel application for programmers who want to practice solving problems against another player. A React client provides accounts, matchmaking, a JavaScript editor, and custom rooms; an Express/Socket.IO server coordinates matches, stores data in MongoDB, and executes JavaScript in isolated-vm V8 isolates. Ranked progression and some custom-match rules have implementation gaps documented below.
 
 ## Features
 
@@ -24,7 +24,8 @@ Versions below are the declared package ranges, not a reproducible dependency lo
 | Persistence | MongoDB through Mongoose `^8.18.1` |
 | Authentication | bcryptjs `^3.0.2`, jsonwebtoken `^9.0.2` |
 | Development | ESLint 9, nodemon, dotenv, PostCSS/Autoprefixer |
-| External services | Piston execution API; DiceBear Bottts SVG avatars on the account page |
+| Execution | isolated-vm `5.0.4` in the Node 22 backend |
+| External services | DiceBear Bottts SVG avatars on the account page |
 
 ## Project structure
 
@@ -61,7 +62,7 @@ flowchart LR
     API --> DB[(MongoDB)]
     Realtime --> DB
     Realtime --> Memory[In-memory queues, lobbies, active matches]
-    API -->|Code and generated test harnesses| Piston[Piston execution API]
+    API -->|Code and copied results| Sandbox[In-process V8 isolates]
     Browser -->|Avatar image| DiceBear[DiceBear]
 ```
 
@@ -71,9 +72,9 @@ The client keeps its JWT in `localStorage` and sends it as a Bearer token for pr
 
 ## Prerequisites
 
-- Node.js and npm. The locally installed Vite 7.1.5 declares Node `^20.19.0 || >=22.12.0`. **TODO: confirm** the project's supported Node/npm versions; neither package declares `engines` and no runtime version file is committed.
+- Node.js 22.x and npm. Server scripts include the required `--no-node-snapshot` flag. The client requires Node 22.12 or newer.
 - An accessible MongoDB database. **TODO: confirm** the supported MongoDB version; none is pinned.
-- Self-hosted Piston with Node `18.15.0` installed. Docker Desktop must use Linux containers with cgroup v2; the Piston container runs privileged.
+- Native addon installation uses prebuilt binaries where available. If unavailable, install Python and C++ build tools (Visual Studio C++ tools on Windows; Python 3, make and g++ on Debian). Docker supplies build tools in a separate stage.
 - A browser for the client, with separate browser profiles or devices for two-player testing.
 
 ## Installation and setup
@@ -114,7 +115,9 @@ The root `.env` is the only environment file. Set these names; never commit real
 | --- | --- | --- |
 | `MONGO_URI` | MongoDB URI shared by local Node, seed scripts and Compose. Include the intended database name; an omitted name defaults to `test`. | Required |
 | `JWT_SECRET` | Long random signing secret shared by local and Docker runs. | Required |
-| `PISTON_URL` | Full execution endpoint, with no path appended. Local backend: `http://localhost:2000/api/v2/execute`. Compose overrides this with `http://piston:2000/api/v2/execute`. | Set for local runs |
+| `SANDBOX_MEMORY_MB` | Per-request isolate memory target; default 128 MiB, accepted range 16?512. Not a hard process memory ceiling. | Optional |
+| `SANDBOX_TIMEOUT_MS` | Per-test async evaluation budget; default 3000 ms, accepted range 1?10000. | Optional |
+| `NODE_OPTIONS` | Set `--no-node-snapshot` on Node hosts. Included in Docker; npm start/dev/test also pass the flag explicitly. | Required for direct Node launches |
 | `CLIENT_ORIGIN` | Allowed REST and Socket.IO browser origin. Use `http://localhost:8080` for default Docker ports or `http://localhost:5173` for local Vite. | Set to match the browser URL |
 | `WEB_PORT` | Published nginx port; defaults to 8080. | Optional, Compose only |
 | `BACKEND_PORT` | Published backend debug port on host loopback; defaults to 5000. | Optional, Compose only |
@@ -144,7 +147,7 @@ Register at `/register`, then use `/lobby` to queue with a second user. Use `/cu
 
 During a battle, switching tabs or losing window focus triggers a forfeit. Large/rapid editor insertions also trigger a forfeit, so pasting solutions or using two tabs in one browser is unsuitable for normal match testing.
 
-For custom test cases, `input` is a string containing JavaScript call arguments, and `output` must match the exact `JSON.stringify` result. For example, Two Sum uses input `[2,7,11,15], 9` and output `[0,1]`. The harness extracts a named `function` declaration from `starterCode`, falling back to `solution`, and calls it with those arguments. Each test case is executed in a separate remote request.
+For custom test cases, `input` is a string containing JavaScript call arguments, and `output` must match the exact `JSON.stringify` result. For example, Two Sum uses input `[2,7,11,15], 9` and output `[0,1]`. The harness extracts a named `function` declaration from `starterCode`, falling back to `solution`, and calls it with those arguments. Each test case uses a fresh context within one request-owned isolate. The host serializes the copied return value with JSON.stringify; console text cannot provide the judged result.
 
 ## API and realtime reference
 
@@ -156,8 +159,8 @@ All HTTP paths below are relative to the backend origin. Request bodies are JSON
 | POST | `/api/auth/login` | No | `email`, `password`; returns user identifiers and a token. |
 | GET | `/api/auth/me` | Yes | Returns the current user without the password field. |
 | PUT | `/api/users/profile` | Yes | Updates `username`; returns `_id`, `username`, `email`. |
-| POST | `/api/code/execute` | No | `code`, `language`; returns `output`. Language defaults to JavaScript in the runner. |
-| POST | `/api/code/submit` | No | `code`, `language`, `problemId`; returns `success` and test `results` containing `id`, `passed`, `input`, `expected`, `actual`. |
+| POST | `/api/code/execute` | Yes | `code`, `language`; returns `output`. Only JavaScript is accepted. console.log/error output is capped; execution errors are appended as safe messages. |
+| POST | `/api/code/submit` | Yes | `code`, `language`, `problemId`; returns `success` and test `results` containing `id`, `passed`, `input`, `expected`, `actual`. |
 | POST | `/api/custom/problem` | Yes | Creates a problem with `title`, `description`, `starterCode`, `testCases` (`input`/`output` strings). |
 | GET | `/api/custom/problems` | Yes | Lists the current user's custom problems. |
 | POST | `/api/custom/template` | Yes | Creates a template from `name`, `password`, `rounds`, `timeLimit`, `problemIds`. |
@@ -186,7 +189,7 @@ Server events are `rooms_update`, `custom_room_created`, `error_joining_room`, `
 
 ## Testing
 
-No automated test files, test scripts, or CI workflows are committed. The available client lint check is:
+Private tests live in gitignored test/. With those files available, run npm test --prefix server. Sandbox regression tests use the real native addon and mock database calls; node --no-node-snapshot test/server/problem-set/verify.cjs rechecks all reference solutions. No CI workflow is committed. The client lint check is:
 
 ```sh
 cd client
@@ -195,7 +198,7 @@ npm run lint
 
 The documentation audit ran this check: it failed with three unused-variable errors (`err` in `CustomRoomDashboard.jsx` and `RoomBrowserPage.jsx`, and `lobbyCounts` in `LobbyPage.jsx`) and one missing-effect-dependency warning in `CustomRoomDashboard.jsx`.
 
-Manual smoke checks should cover registration/login, username changes, a two-user ranked match, custom-room creation/joining, a spectator joining before match start, execution/submission, and match history. These flows were inspected in code but were not exercised against MongoDB or Piston during the documentation audit. Build and service startup commands were checked against package scripts, not executed.
+Manual smoke checks should cover registration/login, username changes, a two-user ranked match, custom-room creation/joining, a spectator joining before match start, execution/submission, and match history. These flows were inspected in code but were not exercised against MongoDB or the execution sandbox during the documentation audit. Build and service startup commands were checked against package scripts, not executed.
 
 ## Deployment
 
@@ -205,7 +208,7 @@ With Docker Desktop running Linux containers, create the root `.env` using the v
 docker compose up --build
 ```
 
-Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. Default mode uses Atlas through `MONGO_URI` and starts client, server, and Piston. Allow the backend machine's outbound IP in Atlas Network Access and provide a database user with access to the intended database. The root environment file is outside both build contexts and is never copied into an image.
+Open `http://localhost:8080`. The backend is exposed on `127.0.0.1:5000` for debugging. Default mode uses Atlas through `MONGO_URI` and starts client and server. Allow the backend machine's outbound IP in Atlas Network Access and provide a database user with access to the intended database. The root environment file is outside both build contexts and is never copied into an image.
 
 For optional local MongoDB 8, set `MONGO_URI=mongodb://mongo:27017/codeduel` in root `.env`, then run:
 
@@ -231,34 +234,42 @@ To delete the database volume as well (destructive):
 docker compose down -v
 ```
 
-Both package lockfiles must be present for the Dockerfiles' `npm ci` steps. The frontend uses a Node 20 build stage and nginx with SPA, API, and WebSocket routing. The backend runs as the unprivileged Node user. Piston is included as a separate privileged service; install its JavaScript runtime once as described below. A new local database needs problem data before matchmaking works. The current in-memory match state assumes one backend process.
+Both package lockfiles must be present for the Dockerfiles' `npm ci` steps. The frontend uses a Node 20 build stage and nginx with SPA, API, and WebSocket routing. The backend runs as the unprivileged Node user. Execution is part of the backend process, without a privileged service or execution port. A new local database needs problem data before matchmaking works. The current in-memory match state assumes one backend process.
 
-## Self-hosted code execution
+## In-process JavaScript execution
 
-The pinned official Piston image runs on the Compose network. The backend uses `http://piston:2000/api/v2/execute`; local `npm run dev --prefix server` uses root `.env` with `PISTON_URL=http://localhost:2000/api/v2/execute`. There is no root `npm run server` script. The controller remains unchanged and requests `javascript` version `18.15.0`.
+Use Node 22.x. The Docker backend uses a Debian slim build with Python/make/g++ available only in the dependency stage; the final image runs as the non-root node user. User code runs in that Node version's V8 engine, with JavaScript globals but no Node APIs, timers, network, filesystem, process or require. It is no longer pinned to Node 18.15.0.
 
-Start the stack from the repository root:
+From the repository root:
 
 ```powershell
+npm run dev --prefix server
 docker compose up --build -d
 ```
 
-Once Piston is responding, install the runtime once (repeat after the package volume is wiped):
+Choose local Node or Docker; these are alternative ways to start the backend. There is no root npm run server script. No runtime download or package-install API is needed. Stop Compose with docker compose down (without -v to preserve database data).
 
-```powershell
-Invoke-RestMethod -Method Post -Uri 'http://localhost:2000/api/v2/packages' -ContentType 'application/json' -Body '{"language":"node","version":"18.15.0"}' -TimeoutSec 300
-Invoke-RestMethod -Uri 'http://localhost:2000/api/v2/runtimes'
+For Render or another persistent Node host, set the service root to server, build with npm ci, start with npm start, and select Node 22.x. Set NODE_OPTIONS=--no-node-snapshot in the host dashboard along with MONGO_URI, JWT_SECRET and CLIENT_ORIGIN. SANDBOX_MEMORY_MB and SANDBOX_TIMEOUT_MS are optional. On generic hosts the equivalent direct command is:
+
+```sh
+node --no-node-snapshot server.js
 ```
 
-Packages persist in `piston_packages`. `docker compose down` preserves them; `docker compose down -v` deletes them along with other Compose volumes. Stop the stack with `docker compose down`.
+Run still evaluates the editor text only: a function declaration without console calls prints nothing. Submit extracts the first named function from starterCode (fallback solution), evaluates the editor code, then calls the function with each test's argument string. Undefined, functions, non-cloneable or non-JSON-serializable results fail. Runtime, syntax, timeout and memory errors produce safe messages, with no host stack traces. Console output is capped at 10 KiB across a request. Each request disposes its isolate, including on failure.
 
-Piston is privileged to support isolate and cgroups. Treat it as a sensitive execution service: do not expose its unauthenticated execution or package APIs publicly. Port 2000 is bound only to `127.0.0.1`; it is also reachable by containers on the Compose network. No application secrets or source folders are mounted into Piston. Job storage and /tmp use tmpfs. Its healthcheck checks API availability, not runtime installation or successful sandbox execution. Backend startup does not depend on Piston health.
+Existing guards remain: authenticated routes, 50,000 UTF-8 code bytes, JavaScript only, one active request per account, four per process, and 1?20 tests with at most 10,000 UTF-8 bytes each for input and output. A full submission may consume 20 times the per-test timeout; there is no distributed rate limiter or whole-submission deadline.
+
+This is V8-level isolation, not OS-level isolation. CPU and the Node process are shared. The library's memory limit is approximate, and catastrophic V8 failures can still crash the process. Passing memory-bomb tests is not a guarantee against arbitrary attacks. Host-side copying and serialization also consume memory and CPU. Do not treat this as safe public multi-tenant execution: before opening to strangers, put execution in a separate restricted process/container with hard CPU/memory limits, add authenticated rate limits and admission controls, protect match scoring on the server, and keep Node/native dependencies patched. Visible tests can always be hardcoded.
+
+Native addon packaging and WebSocket/shared match-state behavior on Vercel still need deployment validation; this change does not resolve those hosting limitations.
+
+See [isolated-vm requirements and security guidance](https://github.com/laverdet/isolated-vm/tree/v5.0.4).
 
 ## Known issues and limitations
 
 - **Ranked persistence is inconsistent with the schema.** `server/server.js` assigns ranks such as Bronze to `User.role`, but `server/models/user.model.js` permits only `user`, `admin`, and `developer`; `stats.rp` is absent from the schema. A ranked result is saved before these user updates, which can fail validation. The account page displays a fixed `BRONZE I` label. Matchmaking does not use rank to select opponents.
 - **Match integrity relies on clients.** Socket identities come from user-supplied data; no socket authentication middleware is installed. Round wins are not tied to server-validated submissions, and room subscription/forfeit/progress handlers do not consistently enforce participation. Full problem documents, including test cases, are sent to players.
-- **Execution endpoints are public.** There is no route authentication, explicit rate limiter, or Axios request timeout for Piston. Input validation is limited; an empty test-case list produces a successful submission without running code.
+- **Execution shares the API process.** V8 isolation and per-process concurrency controls do not provide OS resource containment or distributed rate limiting. Catastrophic allocation failures can still affect all requests; see the execution section above.
 - **Custom-match outcomes can be wrong.** On the last problem, `round_won` chooses that event's socket as the winner instead of comparing total scores. **TODO: confirm** intended custom-match victory and tie rules.
 - **Time limits are not enforced.** Template `timeLimit` is stored but not used by match logic. The arena counts down from 300 seconds without ending the match at zero or resetting the timer each round. **TODO: confirm** intended timer and timeout behavior.
 - **Template lifecycle gaps.** The UI collects a template description, but the create/update controllers omit it. Editing a template creates new custom-problem documents; deleting a template does not delete its problems. Room passwords are stored in plaintext, and socket-based template launching does not check template ownership.

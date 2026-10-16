@@ -39,7 +39,7 @@ async function main(){
       const v=JSON.parse(fs.readFileSync(verificationPath));
       const hash=crypto.createHash('sha256').update(bytes).digest('hex');
       const controllerHash=crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,'../controllers/code.controller.js'))).digest('hex');
-      if(!v.success||v.runtime!=='v18.15.0'||v.dataHash!==hash||v.controllerHash!==controllerHash||v.rows.length!==data.length||v.rows.some(r=>r.passed!==r.total||!r.agreement)||v.negatives.length!==3)throw Error('Verification is missing or stale.');
+      if(!v.success||!/^v22\./.test(v.runtime)||v.sandboxHash!==crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,'../services/sandbox.js'))).digest('hex')||v.dataHash!==hash||v.controllerHash!==controllerHash||v.rows.length!==data.length||v.rows.some(r=>r.passed!==r.total||!r.agreement)||v.negatives.length!==3)throw Error('Verification is missing or stale.');
     }
   }
   await mongoose.connect(process.env.MONGO_URI,{serverSelectionTimeoutMS:15000});

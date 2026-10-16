@@ -3,26 +3,6 @@
 # docker compose --profile localdb up --build
 # mongo_data is used only by the localdb service; volume declarations cannot have profiles.
 services:
-  piston:
-    image: ghcr.io/engineer-man/piston@sha256:2f66b7456189c4d713aa986d98eccd0b6ee16d26c7ec5f21b30e942756fd127a
-    privileged: true
-    restart: unless-stopped
-    volumes:
-      - piston_packages:/piston/packages
-    tmpfs:
-      - /piston/jobs:exec
-      - /tmp:exec
-    ports:
-      - "127.0.0.1:2000:2000"
-    healthcheck:
-      test: ["CMD", "node", "-e", "const http = require('http'); const req = http.get('http://127.0.0.1:2000/api/v2/runtimes', res => { res.resume(); process.exit(res.statusCode === 200 ? 0 : 1); }); req.setTimeout(3000, () => { req.destroy(); process.exit(1); }); req.on('error', () => process.exit(1));"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    networks:
-      - codeduel
-
   mongo:
     image: mongo:8
     profiles: [localdb]
@@ -49,7 +29,9 @@ services:
       PORT: "5000"
       MONGO_URI: ${MONGO_URI:?MONGO_URI must be set in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in the root .env file}
-      PISTON_URL: http://piston:2000/api/v2/execute
+      NODE_OPTIONS: --no-node-snapshot
+      SANDBOX_MEMORY_MB: ${SANDBOX_MEMORY_MB:-128}
+      SANDBOX_TIMEOUT_MS: ${SANDBOX_TIMEOUT_MS:-3000}
       CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
     ports:
       - "127.0.0.1:${BACKEND_PORT:-5000}:5000"
@@ -82,7 +64,6 @@ services:
       - codeduel
 
 volumes:
-  piston_packages:
   mongo_data:
 
 networks:

@@ -1,8 +1,8 @@
-const axios = require('axios');
+const { runSandbox } = require('../services/sandbox');
 const Problem = require('../models/problem.model');
 const CustomProblem = require('../models/customProblem.model');
 
-// Bound outstanding remote work per process and per authenticated account.
+// Bound outstanding sandbox work per process and per authenticated account.
 const activeUsers = new Set();
 const withExecutionLimit = handler => async (req, res) => {
     const userId = req.user?._id?.toString();
@@ -23,28 +23,13 @@ const withExecutionLimit = handler => async (req, res) => {
     }
 };
 
-const runPiston = async (code, language) => {
-    const response = await axios.post(process.env.PISTON_URL || 'https://emkc.org/api/v2/piston/execute', {
-        language: language || 'javascript',
-        version: '18.15.0',
-        files: [{ content: code }]
-    }, {
-        timeout: 10000,
-        signal: AbortSignal.timeout(15000),
-        maxContentLength: 1024 * 1024,
-        maxBodyLength: 256 * 1024,
-        maxRedirects: 0
-    });
-    return response.data.run;
-};
-
 exports.executeCode = withExecutionLimit(async (req, res) => {
-    const { code, language } = req.body;
+    const { code } = req.body;
     if (!code) return res.status(400).json({ output: "No code provided." });
 
     try {
-        const result = await runPiston(code, language);
-        res.json({ output: result.output });
+        const [result] = await runSandbox(code);
+        res.json({ output: result.output + (result.error ? `\n${result.error}` : '') });
     } catch (error) {
         console.error('Code execution failed');
         res.status(500).json({ output: "Error executing code." });
@@ -59,7 +44,7 @@ const getFunctionName = (starterCode) => {
 };
 
 exports.submitCode = withExecutionLimit(async (req, res) => {
-    const { code, language, problemId } = req.body;
+    const { code, problemId } = req.body;
 
     try {
         if (typeof problemId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(problemId)) {
@@ -78,55 +63,20 @@ exports.submitCode = withExecutionLimit(async (req, res) => {
 
         const functionName = getFunctionName(problem.starterCode);
         
-        const results = [];
-        let allPassed = true;
-
-        for (let i = 0; i < problem.testCases.length; i++) {
-            const testCase = problem.testCases[i];
-            
-            // Use a special prefix that we can easily find in the output
-            // We print on a new line to ensure it's separated from user logs
-            const testHarness = `
-${code}
-
-console.log("\\n___RESULT::" + JSON.stringify(${functionName}(${testCase.input})));
-`;
-            const result = await runPiston(testHarness, language);
-            const rawOutput = result.output || "";
-            
-            // PARSING LOGIC:
-            // 1. Split output by newlines
-            // 2. Find the line that starts with ___RESULT::
-            // 3. Parse the JSON after that prefix
-            const lines = rawOutput.trim().split('\n');
-            let actualOutput = "undefined";
-            
-            for (let j = lines.length - 1; j >= 0; j--) {
-                const line = lines[j].trim();
-                if (line.startsWith('___RESULT::')) {
-                    actualOutput = line.replace('___RESULT::', '');
-                    break;
-                }
-            }
-
-            // Strict string comparison
-            const expectedOutput = testCase.output.trim();
-            const passed = result.code === 0 && !result.signal && actualOutput === expectedOutput;
-            
-            if (!passed) {
-                allPassed = false;
-                // Optional: Log for server debugging
-                // console.log(`Test ${i+1} Failed. Got: ${actualOutput}, Expected: ${expectedOutput}`);
-            }
-
-            results.push({
+        const executions = await runSandbox(code, problem.testCases.map(testCase =>
+            functionName + '(' + testCase.input + ')'));
+        const results = problem.testCases.map((testCase, i) => {
+            const result = executions[i];
+            const expected = testCase.output.trim();
+            return {
                 id: i + 1,
-                passed,
+                passed: !result.error && result.actual === expected,
                 input: testCase.input,
-                expected: expectedOutput,
-                actual: actualOutput
-            });
-        }
+                expected,
+                actual: result.error || result.actual
+            };
+        });
+        const allPassed = results.every(result => result.passed);
 
         res.json({ 
             success: allPassed, 

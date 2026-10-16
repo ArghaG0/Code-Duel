@@ -19,16 +19,17 @@ Rollback is destructive only for records in `seeded-titles.json`: it matches bot
 
 Private authoring and verification files live in ignored `test/server/problem-set/`, outside both Docker build contexts. `solutions.json` maps each title to its function name, reference solution, independent alternative, and hand-checked example. `verification.json` records exact-runtime results. These files are intentionally unavailable in a fresh clone or product image; preserve them separately for future re-verification.
 
-The local verifier runs the unchanged submission controller with its database lookup replaced by an in-memory fixture and its Axios call replaced by a separate Node process for each case. Each process has a ten-second timeout. It makes no Piston or database requests. The controller itself constructs the harness and compares the last result marker. Verification used the exact `node:18.15.0-alpine` image, with read-only mounts, not copied answer files.
+The local verifier runs the real submission controller and isolated-vm sandbox, replacing only database lookups with fixtures. It compares every reference solution with six expected cases and an independent alternative. The verification report binds the data, controller and sandbox hashes and requires Node 22.x; it replaces the earlier Node 18.15.0 report.
 
-To regenerate data locally, run `node test/server/problem-set/build.cjs`. Then rerun verification (PowerShell, from the repository root):
+From the repository root:
 
 ```powershell
-$repo = (Get-Location).Path
-$result = docker run --rm --mount "type=bind,source=$repo\test\server\problem-set,target=/verification,readonly" --mount "type=bind,source=$repo\server\scripts\data\problems.json,target=/problems.json,readonly" --mount "type=bind,source=$repo\server\controllers\code.controller.js,target=/controller.js,readonly" node:18.15.0-alpine node /verification/verify.cjs
-if ($LASTEXITCODE -ne 0) { throw 'Verification failed' }
-[System.IO.File]::WriteAllText("$repo\test\server\problem-set\verification.json", ($result -join "`n"))
-node --test test/server/problem-set/seed.test.cjs
+node --no-node-snapshot test/server/problem-set/verify.cjs
+node --no-node-snapshot --test test/server/problem-set/seed.test.cjs
 ```
 
-Compose now supplies self-hosted Piston; install its Node 18.15.0 runtime using the root README instructions. Live verification is separate from the offline report: `node test/server/problem-set/piston-live.cjs` checks the real authenticated API and saves `test/server/problem-set/piston-verification.json`. It temporarily creates and removes a test account, sends one submission at a time, and uses the private saved solutions. The live report records 144/144 passing cases plus wrong-answer, timeout, syntax-error, and server-survival checks. Matchmaking samples the entire standard problem collection, including older problems. Custom-room creation without a template samples a standard problem; the dashboard's template workflow uses separately authored CustomProblem records. This seed creates no room templates.
+The verifier writes test/server/problem-set/verification.json. No database writes occur during verification. To regenerate authored data first, use node test/server/problem-set/build.cjs, then rerun verification.
+
+The fixture-backed HTTP check is node --no-node-snapshot test/helpers/sandbox-http.cjs. It starts the actual server, uses real JWT middleware, routes, controller and sandbox, and checks all 144 cases without loading .env or accessing MongoDB. The private sandbox.test.cjs suite covers resource limits and isolation.
+
+Matchmaking samples the whole standard problem collection. This seed creates no room templates.
